@@ -14,6 +14,7 @@ COLORS = {"Red": (1, 0, 0), "Cian": (0, 1, 1), "Yellow": (1, 1, 0), "Pink": (1, 
 
 
 def createRigControlsWorkspaceUI(*args):
+    """It defines the structure of the window."""
     cmds.columnLayout("root", adjustableColumn=True)
 
     cmds.rowLayout(
@@ -49,11 +50,48 @@ def createRigControlsWorkspaceUI(*args):
     cmds.menuItem(label=SHOULDER_CTRL)
     cmds.menuItem(label=ARROWS_CTRL)
 
-    stick_control = cmds.button("Create", command=create_control, parent="root")
+    cmds.button("Create", command=create_control, parent="root")
+
+
+def change_shape_color(shapes=[], color=COLORS["Red"]):
+    """This will change the color of the shapes passed as param."""
+    if shapes:
+        for shape in shapes:
+            cmds.color(shape, rgb=color)
+
+
+def parent_shapes(children=[], parent=None):
+    """Merge the shapes in only one."""
+    if children and parent:
+        relatives_list = []
+        for child in children:
+            relatives_list.append(cmds.listRelatives(child, shapes=True)[0])
+
+        cmds.parent(relatives_list, parent, r=True, s=True)
+
+        for child in children:
+            cmds.delete(child)
+
+    cmds.select(parent)
+
+
+def create_circle_shape(center=[0, 0, 0], radius=1, normal=[0, 1, 0]):
+    return cmds.circle(
+        center=center,
+        normal=normal,
+        sweep=360,
+        radius=radius,
+        degree=3,
+        useTolerance=True,
+        tolerance=0.01,
+        sections=8,
+        constructionHistory=False,
+        o=True,
+    )
 
 
 def create_control(*args):
-    """Create the control base on the kind and the color passed as params."""
+    """Create the control base on the shape, color and name specified by the user."""
     control_color = cmds.optionMenu("Control_Color_oM", q=1, v=1)
     control_shape = cmds.optionMenu("Control_Shape_oM", q=1, v=1)
 
@@ -69,25 +107,10 @@ def create_control(*args):
             "Control of type color %s and with %s shape"
             % (control_color, control_shape)
         )
-        circle = cmds.circle(
-            center=[0, 0, -5],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
+        circle = create_circle_shape(center=[0, 0, -5])
         stick = cmds.curve(d=1, p=[(0, 0, -4), (0, 0, 0)], k=[0, 1])
-        cmds.color(circle, rgb=rgb_color)
-        cmds.color(stick, rgb=rgb_color)
-
-        cmds.parent([cmds.listRelatives(stick, shapes=True)[0]], circle, r=True, s=True)
-        cmds.delete(stick)
-
+        change_shape_color(shapes=[circle, stick], color=rgb_color)
+        parent_shapes(children=[stick], parent=circle)
         final_CTRL = circle
 
     elif control_shape == KNEE_ELBOW_CTRL:
@@ -95,58 +118,12 @@ def create_control(*args):
             "Control of type color %s and with %s shape"
             % (control_color, control_shape)
         )
-        circle_1 = cmds.circle(
-            center=[0, 0, 0],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
-        circle_2 = cmds.circle(
-            center=[0, 0, 0],
-            normal=[1, 0, 0],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
-        circle_3 = cmds.circle(
-            center=[0, 0, 0],
-            normal=[0, 0, 1],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
+        circle_1 = create_circle_shape()
+        circle_2 = create_circle_shape(normal=[1, 0, 0])
+        circle_3 = create_circle_shape(normal=[0, 0, 1])
 
-        cmds.color(circle_1, rgb=rgb_color)
-        cmds.color(circle_2, rgb=rgb_color)
-        cmds.color(circle_3, rgb=rgb_color)
-
-        cmds.parent(
-            [
-                cmds.listRelatives(circle_3, shapes=True)[0],
-                cmds.listRelatives(circle_2, shapes=True)[0],
-            ],
-            circle_1,
-            r=True,
-            s=True,
-        )
-        cmds.delete(circle_3, circle_2)
-
+        change_shape_color(shapes=[circle_1, circle_2, circle_3], color=rgb_color)
+        parent_shapes(children=[circle_2, circle_3], parent=circle_1)
         final_CTRL = circle_1
 
     elif control_shape == BOX_CTRL:
@@ -205,27 +182,14 @@ def create_control(*args):
             d=1, p=[(3, 0, -3), (3, 2, -3), (3, 4, -3), (3, 6, -3)], k=[0, 1, 2, 3]
         )
 
-        cmds.color(bottom_square, rgb=rgb_color)
-        cmds.color(top_square, rgb=rgb_color)
-        cmds.color(line_1, rgb=rgb_color)
-        cmds.color(line_2, rgb=rgb_color)
-        cmds.color(line_3, rgb=rgb_color)
-        cmds.color(line_4, rgb=rgb_color)
-
-        cmds.parent(
-            [
-                cmds.listRelatives(top_square, shapes=True)[0],
-                cmds.listRelatives(line_1, shapes=True)[0],
-                cmds.listRelatives(line_2, shapes=True)[0],
-                cmds.listRelatives(line_3, shapes=True)[0],
-                cmds.listRelatives(line_4, shapes=True)[0],
-            ],
-            bottom_square,
-            r=True,
-            s=True,
+        change_shape_color(
+            shapes=[bottom_square, top_square, line_1, line_2, line_3, line_4],
+            color=rgb_color,
         )
-
-        cmds.delete(top_square, line_1, line_2, line_3, line_4)
+        parent_shapes(
+            children=[top_square, line_1, line_2, line_3, line_4], parent=bottom_square
+        )
+        # Center the pivot
         cmds.xform(bottom_square, cp=True)
         final_CTRL = bottom_square
 
@@ -234,20 +198,8 @@ def create_control(*args):
             "Control of type color %s and with %s shape"
             % (control_color, control_shape)
         )
-        circle = cmds.circle(
-            center=[0, 0, 0],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=2,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
-        cmds.color(circle, rgb=rgb_color)
-
+        circle = create_circle_shape(radius=2)
+        change_shape_color(shapes=[circle], color=rgb_color)
         final_CTRL = circle
 
     elif control_shape == EYES_MASK_CTRL:
@@ -255,44 +207,9 @@ def create_control(*args):
             "Control of type color %s and with %s shape"
             % (control_color, control_shape)
         )
-        r_circle = cmds.circle(
-            n="R_Eye_CTRL",
-            center=[-2, 0, 0],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
-        l_circle = cmds.circle(
-            n="L_Eye_CTRL",
-            center=[2, 0, 0],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=1,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            constructionHistory=False,
-            o=True,
-        )
-        mask = cmds.circle(
-            n="Eyes_CTRL",
-            center=[0, 0, 0],
-            normal=[0, 1, 0],
-            sweep=360,
-            radius=2,
-            degree=3,
-            useTolerance=True,
-            tolerance=0.01,
-            sections=8,
-            o=True,
-        )
+        r_circle = create_circle_shape(center=[-2, 0, 0])
+        l_circle = create_circle_shape(center=[2, 0, 0])
+        mask = create_circle_shape(radius=2)
 
         cmds.xform(mask, scale=[1.8, 1, 0.8], rotation=[90, 0, 0])
         cmds.makeIdentity(mask, apply=True)
@@ -304,6 +221,10 @@ def create_control(*args):
         cmds.color(r_circle, rgb=COLORS["Red"])
         cmds.color(l_circle, rgb=COLORS["Cian"])
         cmds.color(mask, rgb=COLORS["Yellow"])
+
+        cmds.rename(r_circle, "R_Eye_CTRL")
+        cmds.rename(l_circle, "L_Eye_CTRL")
+        cmds.rename(mask, "Eyes_CTRL")
 
     elif control_shape == SHOULDER_CTRL:
         line_1 = cmds.curve(d=1, p=[(-1, 0, -2), (-1, 0, 2)], k=[0, 1])
@@ -336,22 +257,10 @@ def create_control(*args):
         cmds.xform(bot_circle, rotation=[0, 180, 0])
         cmds.makeIdentity(bot_circle, apply=True)
 
-        cmds.color(top_circle, rgb=rgb_color)
-        cmds.color(bot_circle, rgb=rgb_color)
-        cmds.color(line_1, rgb=rgb_color)
-        cmds.color(line_2, rgb=rgb_color)
-
-        cmds.parent(
-            [
-                cmds.listRelatives(line_2, shapes=True)[0],
-                cmds.listRelatives(line_1, shapes=True)[0],
-                cmds.listRelatives(bot_circle, shapes=True)[0],
-            ],
-            top_circle,
-            r=True,
-            s=True,
+        change_shape_color(
+            shapes=[top_circle, bot_circle, line_1, line_2], color=rgb_color
         )
-        cmds.delete(bot_circle, line_1, line_2)
+        parent_shapes(children=[line_1, line_2, bot_circle], parent=top_circle)
         final_CTRL = top_circle
 
     elif control_shape == ARROWS_CTRL:
@@ -420,7 +329,7 @@ def create_control(*args):
                 28,
             ],
         )
-        cmds.color(line, rgb=rgb_color)
+        change_shape_color(shapes=[line], color=rgb_color)
         final_CTRL = line
 
     if control_name and control_shape != EYES_MASK_CTRL:

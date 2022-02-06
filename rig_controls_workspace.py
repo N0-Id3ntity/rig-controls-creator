@@ -12,6 +12,53 @@ ARROWS_CTRL = "Arrows CTRL"
 # Controls colors
 COLORS = {"Red": (1, 0, 0), "Cian": (0, 1, 1), "Yellow": (1, 1, 0), "Pink": (1, 0, 1)}
 
+NONE_ATTRIBUTES = "None"
+FOOT_ATTRIBUTES = "Foot - Toe Lift, Toe Roll, Hell Ball, Tilt, Front/Back Swivel"
+HAND_ATTRIBUTES = (
+    "Hand - Switch FK/IK, Single Curl/Spread, Total Curl/Spread, Visibility"
+)
+DEFAULT_FOOT_CTRL = {
+    "float": [
+        "Toe_Lift",
+        "Toe_Roll",
+        "Heel_Ball",
+        "Foot_Tilt",
+        "Front_Swivel",
+        "Back_Swivel",
+    ],
+    "bool": ["Upper_Leg_Stretch", "Lower_Leg_Stretch"],
+}
+DEFAULT_HAND_CTRL = {
+    "float": [
+        {"Switch": ["Switch FK/IK"]},
+        {
+            "Quick Pose": [
+                "Curl",
+                "Spread",
+                "Fan Backward",
+                "Fan Forward",
+                "Palm Cup",
+                "Palm Spread",
+            ]
+        },
+        {
+            "Fingers": [
+                "Thumb Curl",
+                "Thumb Spread",
+                "Index Curl",
+                "Index Spread",
+                "Middle Curl",
+                "Middle Spread",
+                "Ring Curl",
+                "Ring Spread",
+                "Pinky Curl",
+                "Pinky Spread",
+            ]
+        },
+    ],
+    "bool": [{"Visibility": ["Finger CTRLs Visibility"]}],
+}
+
 
 def createRigControlsWorkspaceUI(*args):
     """It defines the structure of the window."""
@@ -49,6 +96,17 @@ def createRigControlsWorkspaceUI(*args):
     cmds.menuItem(label=EYES_MASK_CTRL)
     cmds.menuItem(label=SHOULDER_CTRL)
     cmds.menuItem(label=ARROWS_CTRL)
+
+    cmds.separator(height=3, style="in", parent="root")
+
+    cmds.optionMenu(
+        "Control_Attributes_oM",
+        label="Select the attributes you want to add",
+        parent="root",
+    )
+    cmds.menuItem(label=NONE_ATTRIBUTES)
+    cmds.menuItem(label=FOOT_ATTRIBUTES)
+    cmds.menuItem(label=HAND_ATTRIBUTES)
 
     cmds.button("Create", command=create_control, parent="root")
 
@@ -97,23 +155,24 @@ def create_curve_shape(d=None, p=[]):
         return cmds.curve(p=p)
 
 
+def add_attribute_to_shape(shape=None, attributes=[]):
+    """Add selected attributes to the shape."""
+    if shape and attributes:
+        pass
+    pass
+
+
 def create_control(*args):
     """Create the control base on the shape, color and name specified by the user."""
+    control_name = cmds.textField("Control_Name_tF", q=True, text=True)
     control_color = cmds.optionMenu("Control_Color_oM", q=1, v=1)
     control_shape = cmds.optionMenu("Control_Shape_oM", q=1, v=1)
-
-    control_name = cmds.textField("Control_Name_tF", q=True, text=True)
-    print(control_name)
+    control_attributes = cmds.optionMenu("Control_Attributes_oM", q=1, v=1)
 
     rgb_color = COLORS[control_color]
-
     final_CTRL = ""
 
     if control_shape == QUIDDITCH_CTRL:
-        print(
-            "Control of type color %s and with %s shape"
-            % (control_color, control_shape)
-        )
         circle = create_circle_shape(center=[0, 0, -5])
         stick = create_curve_shape(d=1, p=[(0, 0, -4), (0, 0, 0)])
         change_shape_color(shapes=[circle, stick], color=rgb_color)
@@ -121,10 +180,6 @@ def create_control(*args):
         final_CTRL = circle
 
     elif control_shape == KNEE_ELBOW_CTRL:
-        print(
-            "Control of type color %s and with %s shape"
-            % (control_color, control_shape)
-        )
         circle_1 = create_circle_shape()
         circle_2 = create_circle_shape(normal=[1, 0, 0])
         circle_3 = create_circle_shape(normal=[0, 0, 1])
@@ -134,10 +189,6 @@ def create_control(*args):
         final_CTRL = circle_1
 
     elif control_shape == BOX_CTRL:
-        print(
-            "Control of type color %s and with %s shape"
-            % (control_color, control_shape)
-        )
         bottom_square = create_curve_shape(
             d=1,
             p=[
@@ -197,19 +248,11 @@ def create_control(*args):
         final_CTRL = bottom_square
 
     elif control_shape == CIRCLE_CTRL:
-        print(
-            "Control of type color %s and with %s shape"
-            % (control_color, control_shape)
-        )
         circle = create_circle_shape(radius=2)
         change_shape_color(shapes=[circle], color=rgb_color)
         final_CTRL = circle
 
     elif control_shape == EYES_MASK_CTRL:
-        print(
-            "Control of type color %s and with %s shape"
-            % (control_color, control_shape)
-        )
         r_circle = create_circle_shape(center=[-2, 0, 0])
         l_circle = create_circle_shape(center=[2, 0, 0])
         mask = create_circle_shape(radius=2)
@@ -303,6 +346,17 @@ def create_control(*args):
         )
         change_shape_color(shapes=[line], color=rgb_color)
         final_CTRL = line
+
+    if control_attributes and control_attributes != NONE_ATTRIBUTES:
+        if control_attributes == FOOT_ATTRIBUTES:
+            for k in DEFAULT_FOOT_CTRL:
+                for attr in DEFAULT_FOOT_CTRL[k]:
+                    print(k, attr, final_CTRL, control_name)
+                    component = cmds.listRelatives(final_CTRL[0], p=True)
+                    print(component)
+                    cmds.select(component)
+                    cmds.addAttr(final_CTRL[0], ln=attr, at=k)
+                # final_CTRL.addAttr()
 
     if control_name and control_shape != EYES_MASK_CTRL:
         cmds.rename(final_CTRL, control_name)

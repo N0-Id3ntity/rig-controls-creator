@@ -90,6 +90,13 @@ def create_circle_shape(center=[0, 0, 0], radius=1, normal=[0, 1, 0]):
     )
 
 
+def create_curve_shape(d=None, p=[]):
+    if d:
+        return cmds.curve(d=d, p=p, k=[i for i in range(len(p))])
+    else:
+        return cmds.curve(p=p)
+
+
 def create_control(*args):
     """Create the control base on the shape, color and name specified by the user."""
     control_color = cmds.optionMenu("Control_Color_oM", q=1, v=1)
@@ -108,7 +115,7 @@ def create_control(*args):
             % (control_color, control_shape)
         )
         circle = create_circle_shape(center=[0, 0, -5])
-        stick = cmds.curve(d=1, p=[(0, 0, -4), (0, 0, 0)], k=[0, 1])
+        stick = create_curve_shape(d=1, p=[(0, 0, -4), (0, 0, 0)])
         change_shape_color(shapes=[circle, stick], color=rgb_color)
         parent_shapes(children=[stick], parent=circle)
         final_CTRL = circle
@@ -131,7 +138,7 @@ def create_control(*args):
             "Control of type color %s and with %s shape"
             % (control_color, control_shape)
         )
-        bottom_square = cmds.curve(
+        bottom_square = create_curve_shape(
             d=1,
             p=[
                 (-3, 0, 3),
@@ -148,9 +155,8 @@ def create_control(*args):
                 (-3, 0, 1),
                 (-3, 0, 3),
             ],
-            k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         )
-        top_square = cmds.curve(
+        top_square = create_curve_shape(
             d=1,
             p=[
                 (-3, 6, 3),
@@ -167,19 +173,16 @@ def create_control(*args):
                 (-3, 6, 1),
                 (-3, 6, 3),
             ],
-            k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         )
-        line_1 = cmds.curve(
-            d=1, p=[(-3, 0, 3), (-3, 2, 3), (-3, 4, 3), (-3, 6, 3)], k=[0, 1, 2, 3]
+        line_1 = create_curve_shape(
+            d=1, p=[(-3, 0, 3), (-3, 2, 3), (-3, 4, 3), (-3, 6, 3)]
         )
-        line_2 = cmds.curve(
-            d=1, p=[(3, 0, 3), (3, 2, 3), (3, 4, 3), (3, 6, 3)], k=[0, 1, 2, 3]
+        line_2 = create_curve_shape(d=1, p=[(3, 0, 3), (3, 2, 3), (3, 4, 3), (3, 6, 3)])
+        line_3 = create_curve_shape(
+            d=1, p=[(-3, 0, -3), (-3, 2, -3), (-3, 4, -3), (-3, 6, -3)]
         )
-        line_3 = cmds.curve(
-            d=1, p=[(-3, 0, -3), (-3, 2, -3), (-3, 4, -3), (-3, 6, -3)], k=[0, 1, 2, 3]
-        )
-        line_4 = cmds.curve(
-            d=1, p=[(3, 0, -3), (3, 2, -3), (3, 4, -3), (3, 6, -3)], k=[0, 1, 2, 3]
+        line_4 = create_curve_shape(
+            d=1, p=[(3, 0, -3), (3, 2, -3), (3, 4, -3), (3, 6, -3)]
         )
 
         change_shape_color(
@@ -227,9 +230,9 @@ def create_control(*args):
         cmds.rename(mask, "Eyes_CTRL")
 
     elif control_shape == SHOULDER_CTRL:
-        line_1 = cmds.curve(d=1, p=[(-1, 0, -2), (-1, 0, 2)], k=[0, 1])
-        line_2 = cmds.curve(d=1, p=[(1, 0, -2), (1, 0, 2)], k=[0, 1])
-        top_circle = cmds.curve(
+        line_1 = create_curve_shape(d=1, p=[(-1, 0, -2), (-1, 0, 2)])
+        line_2 = create_curve_shape(d=1, p=[(1, 0, -2), (1, 0, 2)])
+        top_circle = create_curve_shape(
             p=[
                 (-1, 0, -2),
                 (-2, 0, -3),
@@ -241,7 +244,7 @@ def create_control(*args):
                 (1, 0, -2),
             ]
         )
-        bot_circle = cmds.curve(
+        bot_circle = create_curve_shape(
             p=[
                 (-1, 0, -2),
                 (-2, 0, -3),
@@ -264,7 +267,7 @@ def create_control(*args):
         final_CTRL = top_circle
 
     elif control_shape == ARROWS_CTRL:
-        line = cmds.curve(
+        line = create_curve_shape(
             d=1,
             p=[
                 (-1, 0, -3),
@@ -296,37 +299,6 @@ def create_control(*args):
                 (-2, 0, -1),
                 (-1, 0, -2),
                 (-1, 0, -3),
-            ],
-            k=[
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
             ],
         )
         change_shape_color(shapes=[line], color=rgb_color)
